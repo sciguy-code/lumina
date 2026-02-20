@@ -6,16 +6,15 @@ from lumina.core.image import Image
 
 def load_image(path: str) -> Image:
     """
-    reads an image file -> decodes it -> converts to NumPy -> wraps in Lumina Image.
-    
+    read an image file, decode it, convert to numpy, and wrap it in image.
     """
     file_path = Path(path)
 
     if not file_path.exists():
         raise FileNotFoundError(f"img not found: {path}")
     
-    # using PIL as file reader 
-    # converting to rgb -> we need 3 channels
+    # use pil to read from disk.
+    # convert to rgb so the output has three channels.
     with PILImage.open(file_path) as img:
         img = img.convert("RGB")
         raw_data = np.array(img)

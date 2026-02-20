@@ -3,16 +3,17 @@ import numpy as np
 class Image:
 
     def __init__(self, data: np.ndarray):
-        # crash early if the data is wrong.
+        # fail fast if input is not a numpy array.
         if not isinstance(data, np.ndarray):
             raise TypeError(f"image must be initialized with a NumPy array, got {type(data)}")
         
         self.data = data.astype(np.uint8)
 
     """
+    pixel layout example:
     [
-        [ [R,G,B], [R,G,B] ],   <- row 0
-        [ [R,G,B], [R,G,B] ]    <- row 1
+        [ [r,g,b], [r,g,b] ],   <- row 0
+        [ [r,g,b], [r,g,b] ]    <- row 1
     ]
 
     """
@@ -27,8 +28,8 @@ class Image:
     
     @property
     def channels(self) -> int:
-        # if shape is (h,w) -> grayscale (1 channel)
-        # if shape is (h,w,c) -> colored (c channel)
+        # shape (h, w) means grayscale (1 channel).
+        # shape (h, w, c) means color image (c channels).
         if len(self.data.shape) == 2:
             return 1
         return self.data.shape[2]

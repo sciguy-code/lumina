@@ -3,10 +3,10 @@ from lumina.core.image import Image
 
 def save_image(image: Image, path: str):
     """
-    Takes a Lumina Image -> Converts to PIL -> Encodes to format -> Saves to Disk.
+    take an image object, convert it to pil, and save it to disk.
     """
-    # Convert our raw matrix back to a PIL object
+    # convert raw pixel data back into a pil image.
     pil_img = PILImage.fromarray(image.data)
     
-    # Save it. PIL infers format (png/jpg) from the filename extension.
+    # save to disk; pil infers format from file extension.
     pil_img.save(path)
