@@ -1,6 +1,6 @@
 # lumina
 
-lumina is a small image-processing engine built in python with a cli.
+lumina is a high-performance, vectorized image processing engine built from scratch in python, implementing core computer vision operations like convolution and filtering with optimized numpy routines instead of high-level library calls.
 
 ## what it does right now
 
