@@ -19,4 +19,4 @@ eggs/
 *.egg-info/
 
 # Mac OS
-.DS_Store
+.DS_Store.coverage
