@@ -1,59 +1,74 @@
+import logging
 import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
 from lumina.core.image import Image
 
+# set up a logger for this module
+logger = logging.getLogger(__name__)
+
 def apply_kernel(image: Image, kernel: np.ndarray) -> Image:
-    """
-    apply a kernel over an image using vectorized sliding windows.
-    this is the core operation for blur, sharpen, and edge filters.
-    """
-    # step 1: read input dimensions
+    # this is the core convolution operation
+    # it slides a kernel over every pixel and sums up the weighted neighbors
+
+    # grab kernel dimensions
     k_h, k_w = kernel.shape
     data = image.data
     is_grayscale = (data.ndim == 2)
+
     if is_grayscale:
-        # promote grayscale data to (h, w, 1) so the same path works for all images.
+        # promote to (h, w, 1) so the same code path works for both
         data = data[:, :, None]
+
     h, w, c = data.shape
-    
-    # step 2: compute edge padding so the kernel can cover border pixels.
+
+    # figure out how much padding we need so the kernel can reach border pixels
     pad_h = k_h // 2
     pad_w = k_w // 2
-    
-    # mode='edge' repeats border values, which avoids dark borders.
-    # pad only height and width, not channels.
+
+    # mode='edge' repeats the border values, avoids those ugly dark borders
     padded_image = np.pad(data, ((pad_h, pad_h), (pad_w, pad_w), (0, 0)), mode='edge')
-    
-    # step 3: build sliding windows for each kernel-sized patch.
-    # this creates a 5d view: (height, width, channels, kernel_h, kernel_w).
-    windows = sliding_window_view(padded_image, (k_h, k_w), axis=(0, 1))
-    
-    # step 4: apply kernel weights and reduce across kernel dimensions.
+
+    # sliding_window_view gives us a 5d view: (height, width, channels, kernel_h, kernel_w)
+    # no copies are made here which is pretty neat
+    windows = sliding_window_view(padded_image, (k_h, k_w), axis=(0, 1))  # type: ignore[call-overload]
+
+    # multiply each window by the kernel and sum up to get the output pixel
     output_data = np.sum(windows * kernel, axis=(3, 4))
+
     if is_grayscale:
-        # squeeze back to (h, w) for grayscale output.
+        # squeeze back down to (h, w) for grayscale
         output_data = output_data[:, :, 0]
-    
-    # step 5: clamp to valid pixel range and cast to uint8.
+
+    # clamp to valid pixel range and cast back to uint8
     output_data = np.clip(output_data, 0, 255).astype(np.uint8)
-    
+
     return Image(output_data)
 
-def gaussian_blur(image: Image, size: int = 3) -> Image:
-    """
-    build a gaussian-like kernel and apply it to the image.
-    """
-    print(f"[*] Applying {size}x{size} Gaussian Blur...")
-    
-    if size == 3:
-        # standard 3x3 gaussian approximation.
-        kernel = np.array([
-            [1, 2, 1],
-            [2, 4, 2],
-            [1, 2, 1]
-        ]) / 16.0  # normalize so overall brightness is preserved.
-    else:
-        # fallback to a simple mean kernel for other sizes.
-        kernel = np.ones((size, size)) / (size * size)
 
+def build_gaussian_kernel(size: int = 3, sigma: float = 1.0) -> np.ndarray:
+    # build a proper gaussian kernel from sigma instead of hardcoding values
+    # this is the 2d gaussian formula: G(x,y) = exp(-(x^2 + y^2) / (2*sigma^2))
+
+    if size % 2 == 0:
+        raise ValueError(f"kernel size must be odd, got {size}")
+
+    # create a grid of (x, y) coordinates centered at zero
+    half = size // 2
+    ax = np.arange(-half, half + 1, dtype=np.float64)
+    xx, yy = np.meshgrid(ax, ax)
+
+    # apply the gaussian formula
+    kernel = np.exp(-(xx**2 + yy**2) / (2.0 * sigma**2))
+
+    # normalize so all values sum to 1 (preserves brightness)
+    kernel = kernel / kernel.sum()
+
+    return kernel  # type: ignore[no-any-return]
+
+
+def gaussian_blur(image: Image, size: int = 3, sigma: float = 1.0) -> Image:
+    # apply gaussian blur with a configurable kernel size and sigma
+    logger.info(f"applying {size}x{size} gaussian blur (sigma={sigma})")
+
+    kernel = build_gaussian_kernel(size, sigma)
     return apply_kernel(image, kernel)
