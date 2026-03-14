@@ -19,4 +19,6 @@ eggs/
 *.egg-info/
 
 # Mac OS
-.DS_Store.coverage
+.DS_Store
+.coverage
+enchanting_images/
