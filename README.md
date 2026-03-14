@@ -112,6 +112,20 @@ lumina-cli test.jpg samples/full_pipeline.png --blur --edges --pool --verbose
 
 ---
 
+### enchanting dreamwave filter
+A soft, magical bloom effect with retro vaporwave color shifts and a vignette.
+
+<img src="samples/enchanted_dream.png" width="400" alt="dreamwave output">
+
+---
+
+### enchanting hyperpop filter
+A vibrant, high-contrast style that sharpens details and adds a subtle dreamy glow.
+
+<img src="samples/enchanted_pop.png" width="400" alt="hyperpop output">
+
+---
+
 ## what it does
 
 - loads images from disk (`pillow`), stores pixel data as `numpy` arrays
